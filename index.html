@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Harvest Moon DS · Complete Profit Planner</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+<div class="app-container">
+    <header>
+        <h1><i class="fas fa-calendar-alt"></i> Harvest Moon DS · Complete Profit Planner</h1>
+        <p>Crops, Trees & Mushrooms: day-by-day tables for sowing, harvest, regrowth. Includes leveling, soil effects, and special mechanics.</p>
+    </header>
+
+    <!-- ========= CROPS: SPRING / SUMMER / AUTUMN (30 days) ========= -->
+    <div class="seasons-stack">
+        <!-- Spring -->
+        <section class="season-card" id="spring-section">
+            <h2><i class="fas fa-seedling"></i> Spring Crops (days 1–30)</h2>
+            <div class="add-form">
+                <div class="form-group"><label>Crop:</label> <select id="spring-crop" class="crop-select"></select></div>
+                <div class="form-group"><label>Quantity:</label> <input type="number" id="spring-qty" min="1" value="1"></div>
+                <div class="form-group"><label>Level (1-100):</label> <input type="number" id="spring-level" min="1" max="100" value="1"></div>
+                <div class="form-group"><label>Soil type:</label> <select id="spring-field">
+                    <option value="slow">Slow (+1 day)</option><option value="normal" selected>Normal</option>
+                    <option value="fast">Fast (-1 day)</option><option value="super">Super (-2 days)</option>
+                </select></div>
+                <div class="form-group"><label>Sowing day (1-30):</label> <input type="number" id="spring-day" min="1" max="30" value="1"></div>
+                <div class="form-group checkbox-group"><label><input type="checkbox" id="spring-replant"> Replant after harvest</label></div>
+                <button id="spring-add-btn" class="btn-add"><i class="fas fa-plus"></i> Add</button>
+                <button id="spring-clear-btn" class="btn-clear"><i class="fas fa-trash-alt"></i> Clear</button>
+            </div>
+            <div class="table-wrapper"><table class="timeline-table" id="spring-table"><thead id="spring-header"></thead><tbody id="spring-tbody"></tbody></table></div>
+            <div class="season-summary" id="spring-summary">💰 Spring total: 0 G</div>
+        </section>
+
+        <!-- Summer -->
+        <section class="season-card" id="summer-section">
+            <h2><i class="fas fa-sun"></i> Summer Crops (days 1–30)</h2>
+            <div class="add-form">
+                <div class="form-group"><label>Crop:</label> <select id="summer-crop" class="crop-select"></select></div>
+                <div class="form-group"><label>Quantity:</label> <input type="number" id="summer-qty" min="1" value="1"></div>
+                <div class="form-group"><label>Level:</label> <input type="number" id="summer-level" min="1" max="100" value="1"></div>
+                <div class="form-group"><label>Soil type:</label> <select id="summer-field">
+                    <option value="slow">Slow (+1)</option><option value="normal" selected>Normal</option>
+                    <option value="fast">Fast (-1)</option><option value="super">Super (-2)</option>
+                </select></div>
+                <div class="form-group"><label>Sowing day (1-30):</label> <input type="number" id="summer-day" min="1" max="30" value="1"></div>
+                <div class="form-group checkbox-group"><label><input type="checkbox" id="summer-replant"> Replant after harvest</label></div>
+                <button id="summer-add-btn" class="btn-add"><i class="fas fa-plus"></i> Add</button>
+                <button id="summer-clear-btn" class="btn-clear"><i class="fas fa-trash-alt"></i> Clear</button>
+            </div>
+            <div class="table-wrapper"><table class="timeline-table" id="summer-table"><thead id="summer-header"></thead><tbody id="summer-tbody"></tbody></table></div>
+            <div class="season-summary" id="summer-summary">💰 Summer total: 0 G</div>
+        </section>
+
+        <!-- Autumn -->
+        <section class="season-card" id="autumn-section">
+            <h2><i class="fas fa-leaf"></i> Autumn Crops (days 1–30)</h2>
+            <div class="add-form">
+                <div class="form-group"><label>Crop:</label> <select id="autumn-crop" class="crop-select"></select></div>
+                <div class="form-group"><label>Quantity:</label> <input type="number" id="autumn-qty" min="1" value="1"></div>
+                <div class="form-group"><label>Level:</label> <input type="number" id="autumn-level" min="1" max="100" value="1"></div>
+                <div class="form-group"><label>Soil type:</label> <select id="autumn-field">
+                    <option value="slow">Slow (+1)</option><option value="normal" selected>Normal</option>
+                    <option value="fast">Fast (-1)</option><option value="super">Super (-2)</option>
+                </select></div>
+                <div class="form-group"><label>Sowing day (1-30):</label> <input type="number" id="autumn-day" min="1" max="30" value="1"></div>
+                <div class="form-group checkbox-group"><label><input type="checkbox" id="autumn-replant"> Replant after harvest</label></div>
+                <button id="autumn-add-btn" class="btn-add"><i class="fas fa-plus"></i> Add</button>
+                <button id="autumn-clear-btn" class="btn-clear"><i class="fas fa-trash-alt"></i> Clear</button>
+            </div>
+            <div class="table-wrapper"><table class="timeline-table" id="autumn-table"><thead id="autumn-header"></thead><tbody id="autumn-tbody"></tbody></table></div>
+            <div class="season-summary" id="autumn-summary">💰 Autumn total: 0 G</div>
+        </section>
+    </div>
+
+    <!-- ========= WATERFALL & BASEMENTS (120 days, all-year) ========= -->
+    <section class="special-section" id="waterfall-section">
+        <h2><i class="fas fa-water"></i> Waterfall Field (Super growth) · All year (days 1–120)</h2>
+        <div class="add-form">
+            <div class="form-group"><label>Crop:</label> <select id="waterfall-crop" class="crop-select"></select></div>
+            <div class="form-group"><label>Quantity:</label> <input type="number" id="waterfall-qty" min="1" value="1"></div>
+            <div class="form-group"><label>Level:</label> <input type="number" id="waterfall-level" min="1" max="100" value="1"></div>
+            <div class="form-group"><label>Sowing day (1-120):</label> <input type="number" id="waterfall-day" min="1" max="120" value="1"></div>
+            <div class="form-group checkbox-group"><label><input type="checkbox" id="waterfall-replant"> Replant after harvest</label></div>
+            <button id="waterfall-add-btn" class="btn-add"><i class="fas fa-plus"></i> Add</button>
+            <button id="waterfall-clear-btn" class="btn-clear"><i class="fas fa-trash-alt"></i> Clear</button>
+        </div>
+        <div class="table-wrapper"><table class="timeline-table" id="waterfall-table"><thead id="waterfall-header"></thead><tbody id="waterfall-tbody"></tbody></table></div>
+        <div class="season-summary" id="waterfall-summary">💰 Waterfall total: 0 G</div>
+    </section>
+
+    <section class="special-section" id="basement-section">
+        <h2><i class="fas fa-archive"></i> Basements (Normal growth) · All year (days 1–120)</h2>
+        <div class="add-form">
+            <div class="form-group"><label>Crop:</label> <select id="basement-crop" class="crop-select"></select></div>
+            <div class="form-group"><label>Quantity:</label> <input type="number" id="basement-qty" min="1" value="1"></div>
+            <div class="form-group"><label>Level:</label> <input type="number" id="basement-level" min="1" max="100" value="1"></div>
+            <div class="form-group"><label>Sowing day (1-120):</label> <input type="number" id="basement-day" min="1" max="120" value="1"></div>
+            <div class="form-group checkbox-group"><label><input type="checkbox" id="basement-replant"> Replant after harvest</label></div>
+            <button id="basement-add-btn" class="btn-add"><i class="fas fa-plus"></i> Add</button>
+            <button id="basement-clear-btn" class="btn-clear"><i class="fas fa-trash-alt"></i> Clear</button>
+        </div>
+        <div class="table-wrapper"><table class="timeline-table" id="basement-table"><thead id="basement-header"></thead><tbody id="basement-tbody"></tbody></table></div>
+        <div class="season-summary" id="basement-summary">💰 Basements total: 0 G</div>
+    </section>
+
+    <!-- ========= TREES SECTION ========= -->
+    <section class="special-section" id="trees-section">
+        <h2><i class="fas fa-tree"></i> Fruit Trees (outdoor only · seasonal production)</h2>
+        <div class="add-form">
+            <div class="form-group"><label>Tree:</label> <select id="trees-crop" class="crop-select"></select></div>
+            <div class="form-group"><label>Quantity:</label> <input type="number" id="trees-qty" min="1" value="1"></div>
+            <div class="form-group"><label>Level:</label> <input type="number" id="trees-level" min="1" max="100" value="1"></div>
+            <div class="form-group"><label>Soil type:</label> <select id="trees-field">
+                <option value="slow">Slow (+1)</option><option value="normal" selected>Normal</option>
+                <option value="fast">Fast (-1)</option><option value="super">Super (-2)</option>
+            </select></div>
+            <div class="form-group"><label>Planted day (1-30 of season):</label> <input type="number" id="trees-day" min="1" max="30" value="1"></div>
+            <div class="form-group checkbox-group"><label><input type="checkbox" id="trees-mature"> Already planted previous year (skip growth)</label></div>
+            <button id="trees-add-btn" class="btn-add"><i class="fas fa-plus"></i> Add tree</button>
+            <button id="trees-clear-btn" class="btn-clear"><i class="fas fa-trash-alt"></i> Clear</button>
+        </div>
+        <div class="table-wrapper"><table class="timeline-table" id="trees-table"><thead id="trees-header"></thead><tbody id="trees-tbody"></tbody></table></div>
+        <div class="season-summary" id="trees-summary">💰 Trees total profit: 0 G</div>
+    </section>
+
+    <!-- ========= MUSHROOMS SECTION ========= -->
+    <section class="special-section" id="mushrooms-section">
+        <h2><i class="fas fa-cannabis"></i> Mushroom House (all year · size selection)</h2>
+        <div class="add-form">
+            <div class="form-group"><label>Mushroom:</label> <select id="mushrooms-crop" class="crop-select"></select></div>
+            <div class="form-group"><label>Quantity (pallets):</label> <input type="number" id="mushrooms-qty" min="1" value="1"></div>
+            <div class="form-group"><label>Level:</label> <input type="number" id="mushrooms-level" min="1" max="100" value="1"></div>
+            <div class="form-group"><label>Harvest size:</label> <select id="mushrooms-size">
+                <option value="small">Small (fastest)</option>
+                <option value="medium">Medium (more profit)</option>
+                <option value="large">Large (max profit)</option>
+            </select></div>
+            <div class="form-group"><label>Sowing day (1-120):</label> <input type="number" id="mushrooms-day" min="1" max="120" value="1"></div>
+            <div class="form-group checkbox-group"><label><input type="checkbox" id="mushrooms-mature"> Already planted previous year (skip initial growth)</label></div>
+            <button id="mushrooms-add-btn" class="btn-add"><i class="fas fa-plus"></i> Add mushroom</button>
+            <button id="mushrooms-clear-btn" class="btn-clear"><i class="fas fa-trash-alt"></i> Clear</button>
+        </div>
+        <div class="table-wrapper"><table class="timeline-table" id="mushrooms-table"><thead id="mushrooms-header"></thead><tbody id="mushrooms-tbody"></tbody></table></div>
+        <div class="season-summary" id="mushrooms-summary">💰 Mushrooms total profit: 0 G</div>
+    </section>
+
+    <!-- ========= GLOBAL SUMMARY ========= -->
+    <section class="global-summary-card">
+        <h2><i class="fas fa-chart-line"></i> Total Profit Summary</h2>
+        <div class="global-stats">
+            <div class="stat-item">🌱 Spring: <span id="global-spring">0</span> G</div>
+            <div class="stat-item">☀️ Summer: <span id="global-summer">0</span> G</div>
+            <div class="stat-item">🍂 Autumn: <span id="global-autumn">0</span> G</div>
+            <div class="stat-item">💧 Waterfall: <span id="global-waterfall">0</span> G</div>
+            <div class="stat-item">🏚️ Basements: <span id="global-basement">0</span> G</div>
+            <div class="stat-item">🌳 Trees: <span id="global-trees">0</span> G</div>
+            <div class="stat-item">🍄 Mushrooms: <span id="global-mushrooms">0</span> G</div>
+            <div class="stat-item grand-total">🏆 GRAND TOTAL: <span id="grand-total">0</span> G</div>
+            <button id="global-clear-all" class="btn-clear-all"><i class="fas fa-database"></i> Clear All Data</button>
+        </div>
+    </section>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
