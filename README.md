@@ -44,7 +44,7 @@ The concept of a profit planner was inspired by the [Profit Planner for Harvest 
 ## 🚀 Live Demo
 
 You can try the planner online at:  
-**[https://juniornff.github.io/Harvest-Moon-DS---Profit-Planner](https://juniornff.github.io/Harvest-Moon-DS---Profit-Planner)**
+**[https://nehemiasfeliz.com/Harvest_Moon_DS_-_Profit_Planner/](https://nehemiasfeliz.com/Harvest_Moon_DS_-_Profit_Planner/)**
 
 ## 🛠️ Built With
 
@@ -74,7 +74,7 @@ See the [LICENSE](LICENSE) file for details.
 
 ## 📧 Contact
 
-If you find any bugs or have suggestions, please open an [Issue](https://github.com/juniornff/Harvest-Moon-DS---Profit-Planner/issues) on GitHub.
+If you find any bugs or have suggestions, please open an [Issue](https://github.com/juniornff/Harvest_Moon_DS_-_Profit_Planner/issues) on GitHub.
 
 ---
 
