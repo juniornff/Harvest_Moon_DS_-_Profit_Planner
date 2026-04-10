@@ -96,16 +96,35 @@ function getSeasonClass(day) {
     return "season-winter";
 }
 
+// Helper to get the CSS class for the extra -1 column (previous season)
+function getPrevSeasonClass(sectionId) {
+    if (sectionId === "summer") return "season-spring";
+    if (sectionId === "autumn") return "season-summer";
+    return "";
+}
+
+// Helper to get the CSS class for the main 30 days of a section
+function getMainSeasonClass(sectionId) {
+    if (sectionId === "spring") return "season-spring";
+    if (sectionId === "summer") return "season-summer";
+    if (sectionId === "autumn") return "season-autumn";
+    return "";
+}
+
 // ----------------------------- SIMULATION ENGINES -----------------------------
 
 /**
  * Simulates a standard crop (not a tree, not a mushroom).
  * Produces a timeline of events (sow, harvest, regrow) for the given entry.
+ * Supports sowing on day -1 (planted on day 30 of previous season).
+ * When "Replant after harvest" is enabled, it only replants if the next harvest
+ * would occur before or on the last day of the season (maxDays).
  * @param {Object} entry - The crop entry (contains cropName, quantity, level, fieldType, sowDay, replantUntilEnd).
  * @param {number} maxDays - Number of days to simulate (30 for seasonal tables, 120 for all‑year fields).
+ * @param {boolean} hasExtraColumn - True if the table includes an extra column for day -1.
  * @returns {Object} { timelineEvents: Array of arrays (event per day), totalProfit: number }
  */
-function simulateCrop(entry, maxDays) {
+function simulateCrop(entry, maxDays, hasExtraColumn = false) {
     const crop = getCropData(entry.cropName);
     if (!crop || crop.type !== "crop") return { timelineEvents: new Array(maxDays+1).fill(null), totalProfit: 0 };
     
@@ -117,34 +136,44 @@ function simulateCrop(entry, maxDays) {
     const regrow = crop.regrowDays;
     const profitPerHarvest = entry.quantity * cropValue(crop.basePrice, entry.level);
     
-    let timeline = new Array(maxDays+1);
-    for (let i=1; i<=maxDays; i++) timeline[i] = [];
+    // timeline array: index 0 represents day -1 (if hasExtraColumn), indices 1..maxDays represent days 1..maxDays
+    const timelineSize = maxDays + 1;
+    let timeline = new Array(timelineSize);
+    for (let i = 0; i <= maxDays; i++) timeline[i] = [];
     let totalProfit = 0;
     let sowDay = entry.sowDay;
-    if (sowDay < 1 || sowDay > maxDays) return { timelineEvents: timeline, totalProfit: 0 };
+    let sowIndex;
+    if (hasExtraColumn && sowDay === -1) {
+        sowIndex = 0; // maps to column -1
+    } else {
+        sowIndex = sowDay; // must be between 1 and maxDays
+    }
+    if (sowIndex < 0 || sowIndex > maxDays) return { timelineEvents: timeline, totalProfit: 0 };
     
-    timeline[sowDay].push("sow");
-    let currentSow = sowDay;
+    timeline[sowIndex].push("sow");
+    let currentSow = sowIndex;
     let isFirstHarvest = true;
     
     while (currentSow <= maxDays) {
-        // Harvest day calculation: the day of sowing counts as day 1,
-        // so we subtract 1 day from the maturity period.
-        let harvestDay = currentSow + maturity - 1;
-        if (harvestDay > maxDays) break;
-        
-        timeline[harvestDay].push(isFirstHarvest ? "harvest" : "regrow");
+        let harvestIndex = currentSow + maturity - 1;
+        if (harvestIndex > maxDays) break;
+        timeline[harvestIndex].push(isFirstHarvest ? "harvest" : "regrow");
         totalProfit += profitPerHarvest;
         
         if (replantFlag) {
-            // Replant immediately on the same day as harvest.
-            currentSow = harvestDay;
-            if (currentSow <= maxDays) timeline[currentSow].push("sow");
-            isFirstHarvest = true;
+            // Check if replanting on the same day would lead to another harvest before season end
+            let nextHarvest = harvestIndex + maturity - 1;
+            if (nextHarvest <= maxDays) {
+                currentSow = harvestIndex;
+                if (currentSow <= maxDays) timeline[currentSow].push("sow");
+                isFirstHarvest = true;
+            } else {
+                // No future harvest possible, stop replanting
+                break;
+            }
         } else {
             if (regrow > 0) {
-                // Natural regrowth: subsequent harvests occur every regrowDays.
-                let nextHarvest = harvestDay + regrow;
+                let nextHarvest = harvestIndex + regrow;
                 while (nextHarvest <= maxDays) {
                     timeline[nextHarvest].push("regrow");
                     totalProfit += profitPerHarvest;
@@ -257,6 +286,9 @@ function simulateMushroom(entry, maxDays) {
  * Renders a complete table for a given section.
  * It builds the header and all rows using DOM methods (insertRow, insertCell)
  * to guarantee perfect column alignment, especially for the "Actions" column.
+ * For Summer and Autumn sections (maxDays=30) it adds an extra column "-1"
+ * representing the last day of the previous season, with appropriate seasonal color.
+ * For all 30‑day tables, each day column (1..30) receives the season color class.
  * @param {string} sectionId - ID of the section (e.g., "spring", "waterfall").
  * @param {Array} entries - Array of entry objects for that section.
  * @param {number} maxDays - Number of days (30 or 120).
@@ -270,6 +302,9 @@ function renderSection(sectionId, entries, maxDays, sectionName, simulationFunc)
     const tbody = document.getElementById(`${sectionId}-tbody`);
     if (!table || !thead || !tbody) return 0;
     
+    // Determine if this section should have the extra -1 column
+    const hasExtraColumn = (sectionId === "summer" || sectionId === "autumn") && maxDays === 30;
+    
     thead.innerHTML = '';
     tbody.innerHTML = '';
     
@@ -278,10 +313,25 @@ function renderSection(sectionId, entries, maxDays, sectionName, simulationFunc)
     const infoTh = document.createElement('th');
     infoTh.textContent = 'Item (Details)';
     headerRow.appendChild(infoTh);
+    
+    if (hasExtraColumn) {
+        const th = document.createElement('th');
+        th.textContent = '-1';
+        th.classList.add(getPrevSeasonClass(sectionId));
+        headerRow.appendChild(th);
+    }
     for (let d = 1; d <= maxDays; d++) {
         const th = document.createElement('th');
         th.textContent = d;
-        if (maxDays === 120) th.classList.add(getSeasonClass(d));
+        // For 30‑day tables, add the season class to the header as well
+        if (maxDays === 30 && !hasExtraColumn) {
+            th.classList.add(getMainSeasonClass(sectionId));
+        } else if (maxDays === 30 && hasExtraColumn) {
+            // For summer/autumn with extra column, the main days get the current season class
+            th.classList.add(getMainSeasonClass(sectionId));
+        } else if (maxDays === 120) {
+            th.classList.add(getSeasonClass(d));
+        }
         headerRow.appendChild(th);
     }
     const actionsTh = document.createElement('th');
@@ -289,20 +339,20 @@ function renderSection(sectionId, entries, maxDays, sectionName, simulationFunc)
     headerRow.appendChild(actionsTh);
     thead.appendChild(headerRow);
     
-    // Apply background colour class for 30‑day tables
-    if (maxDays === 30) {
-        if (sectionId === "spring") table.classList.add("spring-bg");
-        else if (sectionId === "summer") table.classList.add("summer-bg");
-        else if (sectionId === "autumn") table.classList.add("autumn-bg");
-        else table.classList.remove("spring-bg", "summer-bg", "autumn-bg");
-    } else {
-        table.classList.remove("spring-bg", "summer-bg", "autumn-bg");
-    }
+    // Remove any leftover background classes from previous renders (we now use per‑cell classes)
+    table.classList.remove("spring-bg", "summer-bg", "autumn-bg");
     
     let totalProfit = 0;
     
     entries.forEach((entry, idx) => {
-        const { timelineEvents, totalProfit: profit } = simulationFunc(entry, maxDays);
+        // Call simulation function with the extra column flag if needed
+        let simResult;
+        if (simulationFunc === simulateCrop && hasExtraColumn) {
+            simResult = simulateCrop(entry, maxDays, true);
+        } else {
+            simResult = simulationFunc(entry, maxDays);
+        }
+        const { timelineEvents, totalProfit: profit } = simResult;
         totalProfit += profit;
         
         const row = tbody.insertRow();
@@ -318,15 +368,16 @@ function renderSection(sectionId, entries, maxDays, sectionName, simulationFunc)
         } else {
             let replantText = entry.replantUntilEnd ? "Yes" : "No";
             if (getCropData(entry.cropName)?.regrowDays > 0) replantText = "No (regrow)";
-            infoText = `${entry.cropName}<br>${entry.quantity} units · Lv.${entry.level}<br>${entry.fieldType} soil · Day ${entry.sowDay}<br>Replant: ${replantText}`;
+            let displayDay = entry.sowDay === -1 ? "-1 (prev season)" : entry.sowDay;
+            infoText = `${entry.cropName}<br>${entry.quantity} units · Lv.${entry.level}<br>${entry.fieldType} soil · Day ${displayDay}<br>Replant: ${replantText}`;
         }
         infoCell.innerHTML = infoText;
         
-        // Day cells (columns 2 .. maxDays+1)
-        for (let d = 1; d <= maxDays; d++) {
-            const events = timelineEvents[d] || [];
+        // Extra column for day -1 (if applicable)
+        if (hasExtraColumn) {
             const cell = row.insertCell();
-            let cellClass = (maxDays === 120) ? getSeasonClass(d) : '';
+            const events = timelineEvents[0] || [];
+            let cellClass = getPrevSeasonClass(sectionId);
             if (events.length === 0) {
                 cell.className = `day-empty ${cellClass}`;
                 cell.textContent = '·';
@@ -341,7 +392,44 @@ function renderSection(sectionId, entries, maxDays, sectionName, simulationFunc)
                 cell.className = `${stateClass} ${cellClass}`;
                 cell.textContent = content;
             } else {
-                // Two events on the same day (e.g., harvest + replant)
+                if (events.includes("harvest") && events.includes("sow")) {
+                    cell.className = `multi-event harvest-sow ${cellClass}`;
+                    cell.innerHTML = '<span class="harvest-icon">🍅</span><span class="sow-icon">🌱</span>';
+                } else if (events.includes("regrow") && events.includes("sow")) {
+                    cell.className = `multi-event regrow-sow ${cellClass}`;
+                    cell.innerHTML = '<span class="regrow-icon">🔄</span><span class="sow-icon">🌱</span>';
+                } else {
+                    cell.className = `day-empty ${cellClass}`;
+                    cell.textContent = events.join(',');
+                }
+            }
+        }
+        
+        // Day cells (1..maxDays)
+        for (let d = 1; d <= maxDays; d++) {
+            const events = timelineEvents[d] || [];
+            const cell = row.insertCell();
+            let cellClass = '';
+            if (maxDays === 120) {
+                cellClass = getSeasonClass(d);
+            } else if (maxDays === 30) {
+                // For 30‑day tables, apply the season color of the current section
+                cellClass = getMainSeasonClass(sectionId);
+            }
+            if (events.length === 0) {
+                cell.className = `day-empty ${cellClass}`;
+                cell.textContent = '·';
+            } else if (events.length === 1) {
+                const ev = events[0];
+                let stateClass = '';
+                let content = '';
+                if (ev === "sow") { stateClass = 'day-sowing'; content = '🌱'; }
+                else if (ev === "harvest") { stateClass = 'day-harvest'; content = '🍅'; }
+                else if (ev === "regrow") { stateClass = 'day-regrow'; content = '🔄'; }
+                else { stateClass = 'day-empty'; content = '·'; }
+                cell.className = `${stateClass} ${cellClass}`;
+                cell.textContent = content;
+            } else {
                 if (events.includes("harvest") && events.includes("sow")) {
                     cell.className = `multi-event harvest-sow ${cellClass}`;
                     cell.innerHTML = '<span class="harvest-icon">🍅</span><span class="sow-icon">🌱</span>';
@@ -374,8 +462,8 @@ function renderSection(sectionId, entries, maxDays, sectionName, simulationFunc)
         actionsCell.appendChild(editBtn);
         actionsCell.appendChild(deleteBtn);
         
-        // Safety check: ensure the row has exactly (1 + maxDays + 1) cells.
-        const expectedCells = 1 + maxDays + 1;
+        // Safety check: ensure the row has exactly (1 + extraColumn?1:0 + maxDays + 1) cells.
+        const expectedCells = 1 + (hasExtraColumn ? 1 : 0) + maxDays + 1;
         if (row.cells.length !== expectedCells) {
             console.warn(`Row has incorrect cell count: ${row.cells.length}, expected ${expectedCells}. Rebuilding...`);
             while (row.cells.length > expectedCells) row.deleteCell(-1);
@@ -438,7 +526,7 @@ function getEntryFromForm(prefix, type) {
     const cropSelect = document.getElementById(`${prefix}-crop`);
     const qty = parseInt(document.getElementById(`${prefix}-qty`).value);
     const level = parseInt(document.getElementById(`${prefix}-level`).value);
-    const sowDay = parseInt(document.getElementById(`${prefix}-day`).value);
+    let sowDay = parseInt(document.getElementById(`${prefix}-day`).value);
     if (!cropSelect || !cropSelect.value || isNaN(qty) || qty < 1 || isNaN(level) || level < 1 || level > 100 || isNaN(sowDay)) return null;
     
     if (type === "tree") {
@@ -472,7 +560,10 @@ function addEntry(sectionId, entriesArray, maxDays, type) {
     const prefix = sectionId.split('-')[0];
     const newEntry = getEntryFromForm(prefix, type);
     if (!newEntry) { alert("Please fill all fields correctly."); return; }
-    if (newEntry.sowDay < 1 || newEntry.sowDay > maxDays) { alert(`Sowing day must be between 1 and ${maxDays}`); return; }
+    // Allow sowing day -1 only for summer and autumn crop sections
+    let minSow = 1;
+    if (type === "crop" && (prefix === "summer" || prefix === "autumn")) minSow = -1;
+    if (newEntry.sowDay < minSow || newEntry.sowDay > maxDays) { alert(`Sowing day must be between ${minSow} and ${maxDays}`); return; }
     entriesArray.push(newEntry);
     refreshAll();
 }

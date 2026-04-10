@@ -38,7 +38,7 @@
 
         <!-- Summer -->
         <section class="season-card" id="summer-section">
-            <h2><i class="fas fa-sun"></i> Summer Crops (days 1–30)</h2>
+            <h2><i class="fas fa-sun"></i> Summer Crops (days -1 to 30)</h2>
             <div class="add-form">
                 <div class="form-group"><label>Crop:</label> <select id="summer-crop" class="crop-select"></select></div>
                 <div class="form-group"><label>Quantity:</label> <input type="number" id="summer-qty" min="1" value="1"></div>
@@ -47,7 +47,10 @@
                     <option value="slow">Slow (+1)</option><option value="normal" selected>Normal</option>
                     <option value="fast">Fast (-1)</option><option value="super">Super (-2)</option>
                 </select></div>
-                <div class="form-group"><label>Sowing day (1-30):</label> <input type="number" id="summer-day" min="1" max="30" value="1"></div>
+                <div class="form-group">
+                    <label>Sowing day ( -1 or 1-30 ) <span title="Use -1 to plant on day 30 of previous season (Spring 30)">ⓘ</span>:</label>
+                    <input type="number" id="summer-day" min="-1" max="30" value="1">
+                </div>
                 <div class="form-group checkbox-group"><label><input type="checkbox" id="summer-replant"> Replant after harvest</label></div>
                 <button id="summer-add-btn" class="btn-add"><i class="fas fa-plus"></i> Add</button>
                 <button id="summer-clear-btn" class="btn-clear"><i class="fas fa-trash-alt"></i> Clear</button>
@@ -58,7 +61,7 @@
 
         <!-- Autumn -->
         <section class="season-card" id="autumn-section">
-            <h2><i class="fas fa-leaf"></i> Autumn Crops (days 1–30)</h2>
+            <h2><i class="fas fa-leaf"></i> Autumn Crops (days -1 to 30)</h2>
             <div class="add-form">
                 <div class="form-group"><label>Crop:</label> <select id="autumn-crop" class="crop-select"></select></div>
                 <div class="form-group"><label>Quantity:</label> <input type="number" id="autumn-qty" min="1" value="1"></div>
@@ -67,7 +70,10 @@
                     <option value="slow">Slow (+1)</option><option value="normal" selected>Normal</option>
                     <option value="fast">Fast (-1)</option><option value="super">Super (-2)</option>
                 </select></div>
-                <div class="form-group"><label>Sowing day (1-30):</label> <input type="number" id="autumn-day" min="1" max="30" value="1"></div>
+                <div class="form-group">
+                    <label>Sowing day ( -1 or 1-30 ) <span title="Use -1 to plant on day 30 of previous season (Summer 30)">ⓘ</span>:</label>
+                    <input type="number" id="autumn-day" min="-1" max="30" value="1">
+                </div>
                 <div class="form-group checkbox-group"><label><input type="checkbox" id="autumn-replant"> Replant after harvest</label></div>
                 <button id="autumn-add-btn" class="btn-add"><i class="fas fa-plus"></i> Add</button>
                 <button id="autumn-clear-btn" class="btn-clear"><i class="fas fa-trash-alt"></i> Clear</button>
