@@ -345,15 +345,19 @@ h2 {
 }
 
 .multi-event {
-    display: flex;
     padding: 0 !important;
-    overflow: hidden;
+    white-space: nowrap;
 }
 .multi-event span {
-    flex: 1;
     display: inline-block;
-    padding: 6px 2px;
+    padding: 6px 4px;
+    width: 28px;
     text-align: center;
+}
+.timeline-table td:last-child, .timeline-table th:last-child {
+    min-width: 80px;
+    width: 80px;
+    background-color: inherit;
 }
 .harvest-sow .harvest-icon { background-color: #ffe3a3; }
 .harvest-sow .sow-icon { background-color: #c7e9b0; }
